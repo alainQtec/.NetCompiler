@@ -2,7 +2,7 @@
  .NET compiler script for windows pc
 
 ## Description
-Uses the installed .NetFramework's CSc.exe to compile and/or run cs source files
+Uses the installed Microsoft (R) Visual C# Compiler, CSc.exe to compile and/or run cs source files
 CSC.exe is the CSharp compiler included in the.NET Framework and can be used to compile from the command prompt. 
 
 ## Why use cmd instead of visual studio

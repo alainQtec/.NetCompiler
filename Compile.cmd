@@ -1,26 +1,20 @@
-@echo off
-pushd .& setlocal
+@(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 & pushd %~dp0 >nul
+set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
+:: Get-Item $env:1 | Unblock-File
+popd & exit /b ||#>)[1];
+<#
+# Copyright (c) Alain Herve.
+# Licensed under the MIT License.
+#=======================================================================================#
 
-set dotNetBase=%SystemRoot%\Microsoft.NET\Framework\
-rem get latest .net path containing csc.exe:
-set dotNet20=%dotNetBase%v2.0.50727\
-set dotNet35=%dotNetBase%v3.5\
-set dotNet40=%dotNetBase%v4.0.30319\
-if exist %dotNet20%nul set dotNet=%dotNet20%
-if exist %dotNet35%nul set dotNet=%dotNet35%
-if exist %dotNet40%nul set dotNet=%dotNet40%
-set msbuildDir=%ProgramFiles(x86)%\MSBuild\14.0\Bin\
-set cscExe="%msbuildDir%csc.exe"
-if not exist %cscExe% set cscExe="%dotNet%csc.exe"
-::echo %cscExe%
+    FileName     : C# Compiler
+    Author       : @alainQtec
+    Version      : 1.0
+    Date         : Monday, January 17, 2022 8:17:45 PM
+    Link         : https://raw.githubusercontent.com/alainQtec/.files/functions/Main.ps1
+    More info    : https://alainQtec.com/
 
-set assemblies=
-REM reference required assemblies here, copy them to the output directory after the colon (:), separated by comma
-REM set assemblies=-reference:.\PresentationCore.Dll,.\WindowsBase.dll
-
-set runArgs=%3 %4 %5 %6 %7 %8 %9 
-if not "%1"=="/run" (set outPath=%~DP1& set outFileName=%~n1& CALL :Compile) else (set outPath=%~DP2& set outFileName=%~n2& CALL :CompileAndRun)
-GOTO :End
+#=======================================================================================#
 
 :Compile
     echo Compiling "%outPath%%outFileName%.cs"
@@ -38,3 +32,50 @@ exit /B
     
 :End 
 ::::
+#>
+function Invoke-Compiler {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false, HelpMessage = "Path cs file to compile")]
+        [string]$Path
+    )
+    
+    begin {
+        $OldErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'silentlyContinue'
+        $IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
+        $IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
+        $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
+        # Load functions
+        try {
+            $script:thisfile = Get-Item $env:0
+            $script:ScriptRoot = $thisfile.Directory
+        }
+        catch {
+            $Error.exception.message
+            exit
+        }
+        [System.IO.Directory]::SetCurrentDirectory($ScriptRoot)
+        [string]$runArgs = $env:runArgs
+        # [string]$dotNetBase = "$env:SystemRoot\Microsoft.NET\Framework"
+        # [string]$CSc = [System.IO.Path]::Combine($([System.Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()), 'csc.exe');
+        # [bool]$CompileAndRun = [bool]$env:CompileAndRun
+        Write-Output $($runArgs.ToString().Split(''))
+        Pause
+        exit
+        Get-Item "Functions\*.ps1" | ForEach-Object {
+            . "$($_.FullName)"
+            [System.Console]::Write('Loaded'); Write-Host "`t$($_.BaseName)" -ForegroundColor Cyan
+        }
+    }
+    
+    process {
+        
+    }
+    
+    end {
+        $ErrorActionPreference = $OldErrorActionPreference
+        [gc]::Collect()
+    }
+}
+Invoke-Compiler
