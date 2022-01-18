@@ -33,11 +33,15 @@ exit /B
 :End 
 ::::
 #>
-function Invoke-Compiler {
+function Invoke-CSCompiler {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $false, HelpMessage = "Path cs file to compile")]
-        [string]$Path
+        # Path cs file to compile
+        [Parameter(Mandatory = $false)]
+        [string]$Path,
+        # Outpath
+        [Parameter(Mandatory = $false)]
+        [string]$Outpath
     )
     
     begin {
@@ -78,4 +82,4 @@ function Invoke-Compiler {
         [gc]::Collect()
     }
 }
-Invoke-Compiler
+Invoke-CSCompiler
