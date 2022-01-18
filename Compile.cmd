@@ -62,19 +62,62 @@ function Invoke-CSCompiler {
         [System.IO.Directory]::SetCurrentDirectory($ScriptRoot)
         [string]$runArgs = $env:runArgs
         # [string]$dotNetBase = "$env:SystemRoot\Microsoft.NET\Framework"
-        # [string]$CSc = [System.IO.Path]::Combine($([System.Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()), 'csc.exe');
-        # [bool]$CompileAndRun = [bool]$env:CompileAndRun
-        Write-Output $($runArgs.ToString().Split(''))
-        Pause
-        exit
-        Get-Item "Functions\*.ps1" | ForEach-Object {
-            . "$($_.FullName)"
-            [System.Console]::Write('Loaded'); Write-Host "`t$($_.BaseName)" -ForegroundColor Cyan
+        [string]$dotNetRD = [System.Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
+        [string]$script:CSc = [System.IO.Path]::Combine($dotNetRD, 'csc.exe');
+        if (-not [bool]$(try { Test-Path $CSc }catch { $false })) {
+            Write-Host -NoNewline 'The CSc file: '; Write-Host -NoNewline $CSc -ForegroundColor Cyan; " was not found!`nAborting ..."; Start-Sleep -Seconds 2
+            break script
         }
+        # [bool]$CompileAndRun = [bool]$env:CompileAndRun
+        # [System.Collections.ArrayList]$arrl = $($runArgs.ToString().Split(''))
+        $arrl = $($runArgs.Split('')).ForEach([string])
+        # parse args
+        for ($i = 0; $i -lt $arrl.Count; $i++) {
+            if ($arrl[$i] -eq '/f') { [int]$fa = $i }
+            if ($arrl[$i] -eq '/o') { [int]$oa = $i }
+        }
+        $filenames = $arrl[($fa + 1)..($oa - 1)]
+        $script:CSfiles = [System.Collections.ArrayList]::new()
+        foreach ($name in $filenames) {
+            if ([bool]$(try { Test-Path $file }catch { $false })) { $CSfiles.Add($(Get-Item $name)) }
+        }
+        $script:Outpath = $arrl[$oa + 1]
+        #  Load functions
+        # Get-Item "Functions\*.ps1" | ForEach-Object {
+        #     . "$($_.FullName)"
+        #     [System.Console]::Write('Loaded'); Write-Host "`t$($_.BaseName)" -ForegroundColor Cyan
+        # }
     }
     
     process {
-        
+        if (($CSfiles.count -gt 1) -and ($null -ne $Outpath)) {
+            if ([bool]$(try { Test-Path $Outpath }catch { $false }) -and ($(Get-Item -Path $Outpath).Attributes -eq 'Directory')) {
+                Write-Warning "Directory $outpath already exist"
+                Start-Sleep -Seconds 2
+                exit
+            }
+            else {
+                New-Item -Path $Outpath -ItemType Directory | Out-Null
+            }
+        }
+        if (($CSfiles.count -gt 1) -and ($null -eq $Outpath)) {
+            foreach ($file in $CSfiles) {
+                [System.Console]::Write('Compiling'); Write-Host $file.Name -ForegroundColor Cyan
+                $OutFile = "$($file.Directory)$($file.BaseName).exe"
+                if ([bool]$(try { Test-Path $OutFile }catch { $false })) { Remove-Item $OutFile -Force }
+                # & $CSc -optimize+ -lib:"$dotNetRD" %assemblies% /t:exe /out:"$OutFile" "$($file.FullName)"
+            }
+        }
+        else {
+            foreach ($file in $CSfiles) {
+                [System.Console]::Write('Compiling'); Write-Host $file.Name -ForegroundColor Cyan
+                $OutFile = $([System.IO.Path]::Combine($Outpath, "$($file.BaseName).exe"))
+                if ([bool]$(try { Test-Path $OutFile }catch { $false })) { Remove-Item $OutFile -Force }
+                # & $CSc -optimize+ -lib:"$dotNetRD" %assemblies% /t:exe /out:"$OutFile" "$($file.FullName)"
+            }
+        }
+        try { Remove-Variable filenames , CSfiles }catch { $null }
+        Pause
     }
     
     end {
