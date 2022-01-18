@@ -90,6 +90,14 @@ function Invoke-CSCompiler {
     }
     
     process {
+        # Path to assemblies
+        $assemblies = @()
+        # reference required assemblies here, copy them to the output directory after the colon (:), separated by comma
+        $assemblies = ("-reference:.\PresentationCore.Dll"; "WindowsBase.dll")
+        # To find each their fullpath I use:
+        # $([System.UriBuilder]::new($([TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
+        # Example:
+        # $([System.UriBuilder]::new($([System.Xml.XmlDocument]::new()).GetType().Assembly.CodeBase)).Path
         if (($CSfiles.count -gt 1) -and ($null -ne $Outpath)) {
             if ([bool]$(try { Test-Path $Outpath }catch { $false }) -and ($(Get-Item -Path $Outpath).Attributes -eq 'Directory')) {
                 Write-Warning "Directory $outpath already exist"
