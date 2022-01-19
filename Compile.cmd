@@ -134,3 +134,30 @@ function Invoke-CSCompiler {
     }
 }
 Invoke-CSCompiler
+
+<#
+https://msdn.microsoft.com/en-us/library/ms379563(v=vs.80).aspx
+c:\windows\Microsoft.NET\Framework\v3.5\bin\csc.exe /t:exe /out:MyApplication.exe MyApplication.cs
+
+
+Another Option:
+For the latest version, first open a Powershell window, go to any folder (e.g. c:\projects\) and run the following
+
+# Get nuget.exe command line
+wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget.exe
+
+# Download the C# Roslyn compiler (just a few megs, no need to 'install')
+.\nuget.exe install Microsoft.Net.Compilers
+
+# Compiler, meet code
+.\Microsoft.Net.Compilers.1.3.2\tools\csc.exe .\HelloWorld.cs
+
+# Run it
+.\HelloWorld.exe
+
+
+# You can also try the new C# interpreter ;)
+.\Microsoft.Net.Compilers.1.3.2\tools\csi.exe
+> Console.WriteLine("Hello world!");
+Hello world!
+#>
