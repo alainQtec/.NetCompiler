@@ -93,7 +93,7 @@ function Invoke-CSCompiler {
         # Path to assemblies
         $assemblies = @()
         # reference required assemblies here, copy them to the output directory after the colon (:), separated by comma
-        $assemblies = ("-reference:.\PresentationCore.Dll"; "WindowsBase.dll")
+        # $assemblies = ("-reference:.\PresentationCore.Dll"; "WindowsBase.dll")
         # To find each their fullpath I use:
         # $([System.UriBuilder]::new($([TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
         # Example:
