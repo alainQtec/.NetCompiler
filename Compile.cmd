@@ -2,38 +2,33 @@
 set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
 :: Get-Item $env:1 | Unblock-File
 popd & exit /b ||#>)[1];
-<#
-# Copyright (c) Alain Herve.
-# Licensed under the MIT License.
-#=======================================================================================#
-
-    FileName     : C# Compiler
-    Author       : @alainQtec
-    Version      : 1.0
-    Date         : Monday, January 17, 2022 8:17:45 PM
-    Link         : https://raw.githubusercontent.com/alainQtec/.files/functions/Main.ps1
-    More info    : https://alainQtec.com/
-
-#=======================================================================================#
-
-:Compile
-    echo Compiling "%outPath%%outFileName%.cs"
-    if exist "%outPath%%outFileName%.exe" del /F "%outPath%%outFileName%.exe" 
-    %cscExe% -optimize+ -lib:"%dotNet%\" %assemblies% /t:exe /out:"%outPath%%outFileName%.exe" %outFileName%.cs
-exit /B
-
-:CompileAndRun
-    echo Compiling "%outPath%%outFileName%.cs"
-    if exist "%outPath%%outFileName%.exe" del /F "%outPath%%outFileName%.exe" 
-    %cscExe% -optimize+ -lib:"%dotNet%\" %assemblies% /t:exe /out:"%outPath%%outFileName%.exe" %outFileName%.cs >nul
-    echo Running "%outPath%%outFileName%.exe"
-    "%outPath%%outFileName%.exe" %runArgs%
-exit /B
-    
-:End 
-::::
-#>
 function Invoke-CSCompiler {
+    <#
+    .SYNOPSIS
+        Compile CS stuff
+    .DESCRIPTION
+        USES THE BUILTIN csc.exe
+    .EXAMPLE
+        PS C:\> <example usage>
+        Explanation of what the example does
+    .INPUTS
+        Inputs (if any)
+    .OUTPUTS
+        Output (if any)
+    .NOTES
+        # Copyright (c) Alain Herve.
+        # Licensed under the MIT License.
+        #=======================================================================================#
+
+            FileName     : C# Compiler
+            Author       : @alainQtec
+            Version      : 1.0
+            Date         : Monday, January 17, 2022 8:17:45 PM
+            Link         : https://raw.githubusercontent.com/alainQtec/.files/functions/Main.ps1
+            More info    : https://alainQtec.com/
+
+        #=======================================================================================#
+    #>
     [CmdletBinding()]
     param (
         # Path cs file to compile
@@ -91,13 +86,20 @@ function Invoke-CSCompiler {
     
     process {
         # Path to assemblies
-        $assemblies = @()
-        # reference required assemblies here, copy them to the output directory after the colon (:), separated by comma
-        # $assemblies = ("-reference:.\PresentationCore.Dll"; "WindowsBase.dll")
-        # To find each their fullpath I use:
+        $assemblieNames = @("PresentationCore.Dll", "WindowsBase.dll")
+        $assemblies = [System.Collections.ArrayList]::new(); foreach ($name in $assemblieNames) {
+            [string[]]$dlla = $(Get-ChildItem -Recurse C:/Windows/Microsoft.Net/assembly/ | Where-Object { $_.Name -like "*$name*" }).FullName
+            $(if ($dlla.Count -gt 1) { $assemblies.Add($dlla[1]) }else { $assemblies.Add($dlla[0]) } ) | Out-Null
+        }
+        # Another way to find each their fullpath:
         # $([System.UriBuilder]::new($([TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
         # Example:
         # $([System.UriBuilder]::new($([System.Xml.XmlDocument]::new()).GetType().Assembly.CodeBase)).Path
+
+        # /nologo                        Suppress compiler copyright message
+        # /win32icon:<file>              Use this icon for the output
+        # /reference:<file list>         Reference metadata from the specified assembly files (Short form: /r)
+        # /platform:<string>             Limit which platforms this code can run on: x86, Itanium, x64, arm, anycpu32bitpreferred, or anycpu. The default is anycpu.
         if (($CSfiles.count -gt 1) -and ($null -ne $Outpath)) {
             if ([bool]$(try { Test-Path $Outpath }catch { $false }) -and ($(Get-Item -Path $Outpath).Attributes -eq 'Directory')) {
                 Write-Warning "Directory $outpath already exist"
@@ -113,7 +115,7 @@ function Invoke-CSCompiler {
                 [System.Console]::Write('Compiling'); Write-Host $file.Name -ForegroundColor Cyan
                 $OutFile = "$($file.Directory)$($file.BaseName).exe"
                 if ([bool]$(try { Test-Path $OutFile }catch { $false })) { Remove-Item $OutFile -Force }
-                # & $CSc -optimize+ -lib:"$dotNetRD" %assemblies% /t:exe /out:"$OutFile" "$($file.FullName)"
+                & $CSc -nologo -optimize+ -lib:"$dotNetRD" -reference:$assemblies /t:exe /out:"$OutFile" "$($file.FullName)"
             }
         }
         else {
@@ -121,7 +123,7 @@ function Invoke-CSCompiler {
                 [System.Console]::Write('Compiling'); Write-Host $file.Name -ForegroundColor Cyan
                 $OutFile = $([System.IO.Path]::Combine($Outpath, "$($file.BaseName).exe"))
                 if ([bool]$(try { Test-Path $OutFile }catch { $false })) { Remove-Item $OutFile -Force }
-                # & $CSc -optimize+ -lib:"$dotNetRD" %assemblies% /t:exe /out:"$OutFile" "$($file.FullName)"
+                & $CSc -nologo -optimize+ -lib:"$dotNetRD" -reference:$assemblies /t:exe /out:"$OutFile" "$($file.FullName)"
             }
         }
         try { Remove-Variable filenames , CSfiles }catch { $null }
@@ -139,7 +141,6 @@ Invoke-CSCompiler
 https://msdn.microsoft.com/en-us/library/ms379563(v=vs.80).aspx
 c:\windows\Microsoft.NET\Framework\v3.5\bin\csc.exe /t:exe /out:MyApplication.exe MyApplication.cs
 
-
 Another Option:
 For the latest version, first open a Powershell window, go to any folder (e.g. c:\projects\) and run the following
 
@@ -154,7 +155,6 @@ wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget.
 
 # Run it
 .\HelloWorld.exe
-
 
 # You can also try the new C# interpreter ;)
 .\Microsoft.Net.Compilers.1.3.2\tools\csi.exe
