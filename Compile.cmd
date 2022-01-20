@@ -15,7 +15,7 @@ for /L %%i in (1,1,%C%) do (
     if "!argc[%%i]!" == "--help" goto :Help
 )
 pushd %~dp0 >nul2>&1
-set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
+chcp 850 >nul & set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
 endlocal
 popd & goto :end
 :Help
@@ -29,6 +29,7 @@ popd & goto :end
 @echo     param1      : The first parameter
 @echo     param2      : The secnd parameter
 @echo.
+timeout /t 2 /nobreak >nul 2>&1
 :end
 exit /b ||#>)[1];
 function Invoke-CSCompiler {
@@ -54,7 +55,6 @@ function Invoke-CSCompiler {
             Version      : 1.0
             Date         : Monday, January 17, 2022 8:17:45 PM
             Link         : https://raw.githubusercontent.com/alainQtec/.files/functions/Main.ps1
-            More info    : https://alainQtec.com/
 
         #=======================================================================================#
     #>
