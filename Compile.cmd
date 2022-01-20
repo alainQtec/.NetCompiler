@@ -1,7 +1,36 @@
-@(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 & pushd %~dp0 >nul
+@(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul
+setlocal enabledelayedexpansion
+if [%1]==[] goto :Help
+set C=0
+for %%x in (%*) do (
+    set /A C+=1
+    set "argc[!C!]=%%~x"
+)
+::[int]$processedargs = %C%
+for /L %%i in (1,1,%C%) do (
+    if "!argc[%%i]!" == "/h" goto :Help
+    if "!argc[%%i]!" == "-h" goto :Help
+    if "!argc[%%i]!" == "/help" goto :Help
+    if "!argc[%%i]!" == "-help" goto :Help
+    if "!argc[%%i]!" == "--help" goto :Help
+)
+pushd %~dp0 >nul2>&1
 set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
-:: Get-Item $env:1 | Unblock-File
-popd & exit /b ||#>)[1];
+endlocal
+popd & goto :end
+:Help
+@echo C# Compiler Script [Version 1.0.0.1]
+@echo By Alain @ https://alainQtec.com
+@echo Licensed under the Coffee-WARE LICENSE
+@echo.&echo Syntax   
+@echo       Compile.cmd param1 param2 param3 
+@echo.
+@echo Key
+@echo     param1      : The first parameter
+@echo     param2      : The secnd parameter
+@echo.
+:end
+exit /b ||#>)[1];
 function Invoke-CSCompiler {
     <#
     .SYNOPSIS
