@@ -47,7 +47,6 @@ function Invoke-CSCompiler {
         $IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
         $IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
         $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
-        # Load functions
         try {
             $script:thisfile = Get-Item $env:0
             $script:ScriptRoot = $thisfile.Directory
@@ -68,7 +67,7 @@ function Invoke-CSCompiler {
         # [bool]$CompileAndRun = [bool]$env:CompileAndRun
         # [System.Collections.ArrayList]$arrl = $($runArgs.ToString().Split(''))
         $arrl = $($runArgs.Split('')).ForEach([string])
-        $Help = [scriptblock]::Create({ Write-Host "C# Compiler Script [Version 1.0.0.1]`nBy Alain @ https://alainQtec.com`nLicensed under the Coffee-WARE LICENSE`n`nSyntax`n`nCompile.cmd param1 param2 param3`n`n Key`n param1`t: The first parameter`n param2`t: The secnd parameter`n"; Start-Sleep -Seconds 2 | Out-Null })
+        $Help = [scriptblock]::Create({ Write-Host "C# Compiler Script [Version 1.0.0.1]`nBy Alain @ https://alainQtec.com`nLicensed under the Coffee-WARE LICENSE`n`nSyntax`n`nCompile.cmd param1 param2 param3`n`n Key`n param1`t: The first parameter`n param2`t: The secnd parameter`n`nExamples:`n`nCompile.cmd /f file1 file2 file3 /o DestinationDir `n"; Start-Sleep -Seconds 2 | Out-Null })
         if ($arrl.Count -le 1) { $Help.Invoke(); break script }
         for ($i = 0; $i -lt $arrl.Count; $i++) {
             $i_ = $arrl[$i]
@@ -76,15 +75,29 @@ function Invoke-CSCompiler {
             if ($i_ -eq '/f') { [int]$fi = $i }
             if ($i_ -eq '/o') { [int]$oi = $i }
         }
-        if ($fi -gt 0 -and $oi -gt 0) {
+        if (($fi -ge 0) -and ($oi -ge 0)) {
             $filenames = $arrl[($fi + 1)..($oi - 1)]
             $script:CSfiles = [System.Collections.ArrayList]::new()
             foreach ($name in $filenames) {
-                if ([bool]$(try { Test-Path $file }catch { $false })) { $CSfiles.Add($(Get-Item $name)) }
+                if ([bool]$(try { Test-Path $([System.IO.Path]::GetFullPath("$name")) }catch { $false })) { $CSfiles.Add($(Get-Item "$name")) | Out-Null }else {
+                    Write-Verbose "File: $name not found"
+                }
             }
         }
-
-        $script:Outpath = $arrl[$oi + 1]
+        # if ($arrl[$oi + 1].Length -eq 0) { Write-Verbose "Please specify Out-dir" }
+        if ($CSfiles.Count -eq 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
+            # Directory of that file
+            $outpath = [System.IO.Path]::GetDirectoryName($CSfiles[0])
+        }
+        elseif ($CSfiles.Count -gt 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
+            # Directory to store compiled files
+            $outpath = [System.IO.Path]::Combine($ScriptRoot, $('_Out-' + $([System.Guid]::NewGuid().Guid)))
+        }
+        else {
+            $outpath = $ScriptRoot
+        }
+        "`n`$outpath = $outpath"
+        exit
         #  Load functions
         # Get-Item "Functions\*.ps1" | ForEach-Object {
         #     . "$($_.FullName)"
@@ -96,7 +109,7 @@ function Invoke-CSCompiler {
         # Path to assemblies
         $assemblieNames = @("PresentationCore.Dll", "WindowsBase.dll")
         $assemblies = [System.Collections.ArrayList]::new(); foreach ($name in $assemblieNames) {
-            [string[]]$dlla = $(Get-ChildItem -Recurse C:/Windows/Microsoft.Net/assembly/ | Where-Object { $_.Name -like "*$name*" }).FullName
+            [string[]]$dlla = $(Get-ChildItem -Recurse "C:/Windows/Microsoft.Net/assembly/" | Where-Object { $_.Name -like "*$name*" }).FullName
             $(if ($dlla.Count -gt 1) { $assemblies.Add($dlla[1]) }else { $assemblies.Add($dlla[0]) } ) | Out-Null
         }
         # Another way to find each their fullpath:
