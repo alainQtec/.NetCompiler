@@ -147,7 +147,6 @@ function Invoke-CSCompiler {
         }
         try { Remove-Variable filenames , CSfiles }catch { $null }
     }
-    
     end {
         $ErrorActionPreference = $OldErrorActionPreference
         [gc]::Collect()
