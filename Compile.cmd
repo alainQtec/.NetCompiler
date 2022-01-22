@@ -84,7 +84,7 @@ function Invoke-CSCompiler {
                 }
             }
         }
-        # if ($arrl[$oi + 1].Length -eq 0) { Write-Verbose "Please specify Out-dir" }
+        if ($arrl[$oi + 1].Length -eq 0) { Write-Warning "Please specify a valid Output dir" }
         if ($CSfiles.Count -eq 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
             # Directory of that file
             $outpath = [System.IO.Path]::GetDirectoryName($CSfiles[0])
