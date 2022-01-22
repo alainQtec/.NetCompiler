@@ -122,6 +122,7 @@ function Invoke-CSCompiler {
         if (($CSfiles.count -gt 1) -and ($null -ne $Outpath)) {
             if ([bool]$(try { Test-Path $Outpath }catch { $false }) -and ($(Get-Item -Path $Outpath).Attributes -eq 'Directory')) {
                 Write-Warning "Directory $outpath already exist"
+                # I guess this is where we check -Force switch
                 Start-Sleep -Seconds 2
                 exit
             }
