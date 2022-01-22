@@ -1,41 +1,13 @@
 @(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul
 setlocal enabledelayedexpansion
-if [%1]==[] goto :Help
-set C=0
-for %%x in (%*) do (
-    set /A C+=1
-    set "argc[!C!]=%%~x"
-)
-::[int]$processedargs = %C%
-for /L %%i in (1,1,%C%) do (
-    if "!argc[%%i]!" == "/h" goto :Help
-    if "!argc[%%i]!" == "-h" goto :Help
-    if "!argc[%%i]!" == "/help" goto :Help
-    if "!argc[%%i]!" == "-help" goto :Help
-    if "!argc[%%i]!" == "--help" goto :Help
-)
-pushd %~dp0 >nul2>&1
+pushd %~dp0 >nul 2>&1
 chcp 850 >nul & set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
-endlocal
-popd & goto :end
-:Help
-@echo C# Compiler Script [Version 1.0.0.1]
-@echo By Alain @ https://alainQtec.com
-@echo Licensed under the Coffee-WARE LICENSE
-@echo.&echo Syntax   
-@echo       Compile.cmd param1 param2 param3 
-@echo.
-@echo Key
-@echo     param1      : The first parameter
-@echo     param2      : The secnd parameter
-@echo.
-timeout /t 2 /nobreak >nul 2>&1
-:end
+popd & endlocal
 exit /b ||#>)[1];
 function Invoke-CSCompiler {
     <#
     .SYNOPSIS
-        Compile CS stuff
+        Compile .CS source files
     .DESCRIPTION
         USES THE BUILTIN csc.exe
     .EXAMPLE
@@ -69,6 +41,7 @@ function Invoke-CSCompiler {
     )
     
     begin {
+        # $DebugPreference = 'Continue'
         $OldErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = 'silentlyContinue'
         $IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
@@ -95,17 +68,23 @@ function Invoke-CSCompiler {
         # [bool]$CompileAndRun = [bool]$env:CompileAndRun
         # [System.Collections.ArrayList]$arrl = $($runArgs.ToString().Split(''))
         $arrl = $($runArgs.Split('')).ForEach([string])
-        # parse args
+        $Help = [scriptblock]::Create({ Write-Host "C# Compiler Script [Version 1.0.0.1]`nBy Alain @ https://alainQtec.com`nLicensed under the Coffee-WARE LICENSE`n`nSyntax`n`nCompile.cmd param1 param2 param3`n`n Key`n param1`t: The first parameter`n param2`t: The secnd parameter`n"; Start-Sleep -Seconds 2 | Out-Null })
+        if ($arrl.Count -le 1) { $Help.Invoke(); break script }
         for ($i = 0; $i -lt $arrl.Count; $i++) {
-            if ($arrl[$i] -eq '/f') { [int]$fa = $i }
-            if ($arrl[$i] -eq '/o') { [int]$oa = $i }
+            $i_ = $arrl[$i]
+            if ($i_ -eq '/?' -or $i_ -eq '-?' -or $i_ -eq '?' -or $i_ -eq '/h' -or $i_ -eq '-h' -or $i_ -eq '/help' -or $i_ -eq '-help' -or $i_ -eq '--help') { $Help.Invoke(); break script }
+            if ($i_ -eq '/f') { [int]$fi = $i }
+            if ($i_ -eq '/o') { [int]$oi = $i }
         }
-        $filenames = $arrl[($fa + 1)..($oa - 1)]
-        $script:CSfiles = [System.Collections.ArrayList]::new()
-        foreach ($name in $filenames) {
-            if ([bool]$(try { Test-Path $file }catch { $false })) { $CSfiles.Add($(Get-Item $name)) }
+        if ($fi -gt 0 -and $oi -gt 0) {
+            $filenames = $arrl[($fi + 1)..($oi - 1)]
+            $script:CSfiles = [System.Collections.ArrayList]::new()
+            foreach ($name in $filenames) {
+                if ([bool]$(try { Test-Path $file }catch { $false })) { $CSfiles.Add($(Get-Item $name)) }
+            }
         }
-        $script:Outpath = $arrl[$oa + 1]
+
+        $script:Outpath = $arrl[$oi + 1]
         #  Load functions
         # Get-Item "Functions\*.ps1" | ForEach-Object {
         #     . "$($_.FullName)"
@@ -121,9 +100,10 @@ function Invoke-CSCompiler {
             $(if ($dlla.Count -gt 1) { $assemblies.Add($dlla[1]) }else { $assemblies.Add($dlla[0]) } ) | Out-Null
         }
         # Another way to find each their fullpath:
-        # $([System.UriBuilder]::new($([TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
+        # $([System.UriBuilder]::new($([$TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
         # Example:
         # $([System.UriBuilder]::new($([System.Xml.XmlDocument]::new()).GetType().Assembly.CodeBase)).Path
+        # but $TypeKnownToBeInTheDesiredAssembly is hard to figure, so 🙅‍♂️ no thanks.
 
         # /nologo                        Suppress compiler copyright message
         # /win32icon:<file>              Use this icon for the output
@@ -156,7 +136,6 @@ function Invoke-CSCompiler {
             }
         }
         try { Remove-Variable filenames , CSfiles }catch { $null }
-        Pause
     }
     
     end {
