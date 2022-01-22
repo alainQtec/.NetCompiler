@@ -86,17 +86,15 @@ function Invoke-CSCompiler {
         }
         if ($arrl[$oi + 1].Length -eq 0) { Write-Warning "Please specify a valid Output dir" }
         if ($CSfiles.Count -eq 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
-            # Directory of that file
             $outpath = [System.IO.Path]::GetDirectoryName($CSfiles[0])
         }
         elseif ($CSfiles.Count -gt 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
-            # Directory to store compiled files
             $outpath = [System.IO.Path]::Combine($ScriptRoot, $('_Compiled-' + $([System.Guid]::NewGuid().Guid)))
         }
         else {
             $outpath = $ScriptRoot
         }
-        "`n`$outpath = $outpath"
+        $script:outpath = $outpath
         exit
         #  Load functions
         # Get-Item "Functions\*.ps1" | ForEach-Object {
@@ -104,7 +102,6 @@ function Invoke-CSCompiler {
         #     [System.Console]::Write('Loaded'); Write-Host "`t$($_.BaseName)" -ForegroundColor Cyan
         # }
     }
-    
     process {
         # Path to assemblies
         $assemblieNames = @("PresentationCore.Dll", "WindowsBase.dll")
