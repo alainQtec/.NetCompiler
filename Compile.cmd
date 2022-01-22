@@ -91,7 +91,7 @@ function Invoke-CSCompiler {
         }
         elseif ($CSfiles.Count -gt 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
             # Directory to store compiled files
-            $outpath = [System.IO.Path]::Combine($ScriptRoot, $('_Out-' + $([System.Guid]::NewGuid().Guid)))
+            $outpath = [System.IO.Path]::Combine($ScriptRoot, $('_Compiled-' + $([System.Guid]::NewGuid().Guid)))
         }
         else {
             $outpath = $ScriptRoot
