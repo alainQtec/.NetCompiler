@@ -46,6 +46,9 @@ function Get-OmniSharpRoslyn {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     
     function get_latest_version() {
+      # The output should be minimal:
+      # EXAMPLE Downloading package 'OmniSharp for Windows (.NET 4.6 / x64)' 	
+      # Retrying from 'https://roslynomnisharp.blob.core.windows.net/releases/1.37.16/omnisharp-win-x64-1.37.16.zip'
       $tmp = Invoke-RestMethod -Uri "https://api.github.com/repos/OmniSharp/omnisharp-roslyn/releases/latest"
       return $tmp.tag_name
     }
