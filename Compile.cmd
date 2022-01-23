@@ -94,7 +94,7 @@ function Invoke-CSCompiler {
         else {
             $outpath = $ScriptRoot
         }
-        $script:outpath = $outpath
+        $script:Outpath = $outpath
         exit
         #  Load functions
         # Get-Item "Functions\*.ps1" | ForEach-Object {
