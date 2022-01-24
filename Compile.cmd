@@ -1,11 +1,16 @@
 @(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul 2>&1 & setlocal enabledelayedexpansion & chcp 850 >nul 2>&1 && set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))" && endlocal && exit /b ||#>)[1];
-if (-not ($([System.Environment]::OSVersion.Platform) -eq 'Win32NT')) {
-    $script:IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
-    $script:IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
+if ($PSVersionTable.PSVersion.Major -lt 6.0) {
+    switch ($([System.Environment]::OSVersion.Platform)) {
+        'Win32NT' { 
+            New-Variable -Option Constant -Name IsWindows -Value $True -ErrorAction SilentlyContinue
+            New-Variable -Option Constant -Name IsLinux -Value $false -ErrorAction SilentlyContinue
+            New-Variable -Option Constant -Name IsMacOs -Value $false -ErrorAction SilentlyContinue
+        }
+    }
 }
-else {
-    $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
-}
+$script:IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
+$script:IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
+$script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
 # function Resolve-Path {
 #     <#
 #     .SYNOPSIS
