@@ -171,7 +171,7 @@ function Invoke-CSCompiler {
         # $([System.UriBuilder]::new($([$TypeKnownToBeInTheDesiredAssembly]::new()).GetType().Assembly.CodeBase)).Path
         # Example:
         # $([System.UriBuilder]::new($([System.Xml.XmlDocument]::new()).GetType().Assembly.CodeBase)).Path
-        # but $TypeKnownToBeInTheDesiredAssembly is hard to figure, so 🙅‍♂️ no thanks.
+        # But $TypeKnownToBeInTheDesiredAssembly is hard to figure, so 🙅‍♂️ no thanks.
 
         # /nologo                        Suppress compiler copyright message
         # /win32icon:<file>              Use this icon for the output
