@@ -1,9 +1,5 @@
-@(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul
-setlocal enabledelayedexpansion
-pushd %~dp0 >nul 2>&1
-chcp 850 >nul & set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))"
-popd & endlocal
-exit /b ||#>)[1];
+@(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul 2>&1 & setlocal enabledelayedexpansion & chcp 850 >nul 2>&1 && set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))" && endlocal && exit /b ||#>)[1];
+Set-StrictMode -Version 'Latest'
 function Invoke-CSCompiler {
     <#
     .SYNOPSIS
@@ -29,6 +25,9 @@ function Invoke-CSCompiler {
             Link         : https://raw.githubusercontent.com/alainQtec/.files/functions/Main.ps1
 
         #=======================================================================================#
+        # Thanks to these blog posts:
+        # 
+        https://powershell.org/2019/02/tips-for-writing-cross-platform-powershell-code/
     #>
     [CmdletBinding()]
     param (
@@ -43,7 +42,7 @@ function Invoke-CSCompiler {
     begin {
         # $DebugPreference = 'Continue'
         $OldErrorActionPreference = $ErrorActionPreference
-        $ErrorActionPreference = 'silentlyContinue'
+        $ErrorActionPreference = 'SilentlyContinue'
         $IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
         $IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
         $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
@@ -68,7 +67,7 @@ function Invoke-CSCompiler {
         # [System.Collections.ArrayList]$arrl = $($runArgs.ToString().Split(''))
         $arrl = $($runArgs.Split('')).ForEach([string])
         $Help = [scriptblock]::Create({ Write-Host "C# Compiler Script [Version 1.0.0.1]`nBy Alain @ https://alainQtec.com`nLicensed under the Coffee-WARE LICENSE`n`nSyntax`n`nCompile.cmd param1 param2 param3`n`n Key`n param1`t: The first parameter`n param2`t: The secnd parameter`n`nExamples:`n`nCompile.cmd /f file1 file2 file3 /o DestinationDir `n"; Start-Sleep -Seconds 2 | Out-Null })
-        if ($arrl.Count -le 1) { $Help.Invoke(); break script }
+        if ($arrl.Count -le 1) { Write-Host "No file to compile!`n`n" -ForegroundColor Yellow; Write-Host "Usage help:`n" -ForegroundColor Green; $Help.Invoke(); break script }
         for ($i = 0; $i -lt $arrl.Count; $i++) {
             $i_ = $arrl[$i]
             if ($i_ -eq '/?' -or $i_ -eq '-?' -or $i_ -eq '?' -or $i_ -eq '/h' -or $i_ -eq '-h' -or $i_ -eq '/help' -or $i_ -eq '-help' -or $i_ -eq '--help') { $Help.Invoke(); break script }
@@ -76,16 +75,29 @@ function Invoke-CSCompiler {
             if ($i_ -eq '/o') { [int]$oi = $i }
         }
         if (($fi -ge 0) -and ($oi -ge 0)) {
-            $filenames = $arrl[($fi + 1)..($oi - 1)]
-            $script:CSfiles = [System.Collections.ArrayList]::new()
-            foreach ($name in $filenames) {
-                if ([bool]$(try { Test-Path $([System.IO.Path]::GetFullPath("$name")) }catch { $false })) { $CSfiles.Add($(Get-Item "$name")) | Out-Null }else {
-                    Write-Verbose "File: $name not found"
-                }
+            $script:filenames = $arrl[($fi + 1)..($oi - 1)]
+        }
+        elseif ($null -eq $oi -or $oi.ToString() -eq '') {
+            $script:filenames = $arrl | Where-Object { ($_ –ne "/f") -and ($_ –ne "/o") }
+            Write-Warning "No output path scpecified`n"
+        }
+        else {
+            Write-Host "`nCritical_error!`n"
+            break script
+        }
+        $CSfiles = [System.Collections.ArrayList]::new()
+        foreach ($name in $filenames) {
+            try { 
+                $CSfiles.Add($(Get-Item (Resolve-Path "$name"))) | Out-Null
+            }
+            catch {
+                Write-Warning "File named, `"$name`" was not found"
             }
         }
-        if ($arrl[$oi + 1].Length -eq 0) { Write-Warning "Please specify a valid Output dir" }
-        if ($CSfiles.Count -eq 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
+        if (($CSfiles.Count -eq 1) -and ($arrl[$oi + 1] -eq '.')) {
+            $outpath = Get-Location
+        }
+        elseif (($CSfiles.Count -eq 1) -and ![bool]$(try { Test-Path (Resolve-Path $arrl[$oi + 1]) }catch { $false })) {
             $outpath = [System.IO.Path]::GetDirectoryName($CSfiles[0])
         }
         elseif ($CSfiles.Count -gt 1 -and ![bool]$(try { Test-Path $arrl[$oi + 1] }catch { $false })) {
@@ -94,7 +106,9 @@ function Invoke-CSCompiler {
         else {
             $outpath = $ScriptRoot
         }
+        # Change the scope
         $script:Outpath = $outpath
+        Write-Host "`$outpath = $outpath"
         exit
         #  Load functions
         # Get-Item "Functions\*.ps1" | ForEach-Object {

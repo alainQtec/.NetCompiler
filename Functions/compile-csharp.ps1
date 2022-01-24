@@ -59,14 +59,14 @@ https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-optio
 C# Compiler Options Listed Alphabetically
 https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically
 #>
- 
+
 [CmdletBinding()]
 Param()
- 
+
 #----------------------------------------------------------
 # Start of functions
 #----------------------------------------------------------
- 
+
 #region ***** Function Get-Filename *****
 function Get-Filename {
   <#
@@ -138,9 +138,9 @@ https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.openfiledialog?
   }
 }
 #endregion ***** End of function Get-Filename *****
- 
+
 #----------------------------------------------------------
- 
+
 #region ***** Function Get-OutputFilename *****
 function Get-OutputFilename {
   <#
@@ -182,25 +182,25 @@ The C# input filename from which to obtain the output filename
   }
 }
 #endregion ***** End of function Get-OutputFilename *****
- 
+
 #----------------------------------------------------------
 # End of functions
 #----------------------------------------------------------
- 
+
 ##=============================================
 ## SCRIPT BODY
 ## Main routine starts here
 ##=============================================
 Set-StrictMode -Version Latest;
 $ErrorActionPreference = "Stop";
- 
+
 Invoke-Command -ScriptBlock {
- 
+
   Write-Output '';
   Write-Output 'Compile C# file';
   $dateMask = Get-Date -Format 'dddd, dd MMMM yyyy HH:mm:ss';
   Write-Output ('Today is {0}' -f $dateMask);
- 
+
   $script = $MyInvocation.MyCommand.Name;
   $scriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition;
   Write-Output ('Running script {0} in directory {1}' -f $script, $scriptPath);
@@ -225,7 +225,7 @@ Write-Output ('Compiling C# file "{0}"' -f (Split-Path -Path $inputfile -Leaf));
 & $compile @cmdArgs $inputfile;
 $rc = $LastExitCode;
 Write-Output "Return code = $rc";
- 
+
 if ($rc -eq 0) {
   #List any files created within the last few minutes
   #as a result of this compile
@@ -237,10 +237,10 @@ if ($rc -eq 0) {
 else {
   Write-Error -Message 'C# sharp compile failed. Please fix the above errors';
 }
- 
+
 [System.Linq.Enumerable]::Repeat("", 2); #blanklines
 Write-Output 'End of compile';
- 
+
 ##=============================================
 ## END OF SCRIPT: compile-csharp.ps1
 ##=============================================
