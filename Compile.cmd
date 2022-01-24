@@ -1,5 +1,52 @@
 @(echo off% <#%) &color 07 & title C# Compiler & mode 100,30 >nul 2>&1 & setlocal enabledelayedexpansion & chcp 850 >nul 2>&1 && set runArgs=%*& set "0=%~f0"& powershell -nop -executionpolicy unrestricted -command "iex ([io.file]::ReadAllText($env:0))" && endlocal && exit /b ||#>)[1];
-Set-StrictMode -Version 'Latest'
+if (-not ($([System.Environment]::OSVersion.Platform) -eq 'Win32NT')) {
+    $script:IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
+    $script:IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
+}
+else {
+    $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
+}
+# function Resolve-Path {
+#     <#
+#     .SYNOPSIS
+#         Resolve path
+#     .DESCRIPTION
+#         Override of the builtin Resolve-Path cmdlet
+#         (For this PSsession)
+#     #>
+#     [CmdletBinding()]
+#     param (
+#         [Parameter(Mandatory = $true)]
+#         [string]$Path
+#     )
+#     PROCESS {
+#         $oeap = $ErrorActionPreference
+#         $ErrorActionPreference = 'SilentlyContinue'
+#         try {
+#             if ($([System.Environment]::OSVersion.Platform) -eq 'Win32NT') {
+#                 $Path = Resolve-Path -Path $Path
+#             }
+#             else {
+#                 $false
+#             }
+#         }
+#         catch {
+#             if ( -not [IO.Path]::IsPathRooted($Path) ) {
+#                 $Path = Join-Path -Path (Get-Location).Path -ChildPath $Path
+#             }
+#             $Path = Join-Path -Path $Path -ChildPath '.'
+#             $Path = [IO.Path]::GetFullPath($Path)
+#         }
+#         $outObj = [PSCustomObject]@{
+#             PSTypeName = 'System.Management.Automation.PathInfo'
+#             Path       = Get-Location $Path
+#         }
+#         Write-Output $outObj
+#     }
+#     END {
+#         $ErrorActionPreference = $oeap
+#     }
+# }
 function Invoke-CSCompiler {
     <#
     .SYNOPSIS
@@ -43,9 +90,6 @@ function Invoke-CSCompiler {
         # $DebugPreference = 'Continue'
         $OldErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = 'SilentlyContinue'
-        $IsLinuxEnv = (Get-Variable -Name "IsLinux" -ErrorAction Ignore) -and $IsLinux
-        $IsMacOSEnv = (Get-Variable -Name "IsMacOS" -ErrorAction Ignore) -and $IsMacOS
-        $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
         try {
             $script:thisfile = Get-Item $env:0
             $script:ScriptRoot = $thisfile.Directory
