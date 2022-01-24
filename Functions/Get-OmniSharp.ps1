@@ -81,7 +81,23 @@ function Get-OmniSharpRoslyn {
     
     #Run as SilentlyContinue to avoid progress bar that can't be seen
     $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $url -OutFile $out
+    try {
+      Invoke-WebRequest -Uri $uri -OutFile $out
+    }
+    catch {
+      $errorDetails = $null
+      $response = $_.Exception | Select-Object -ExpandProperty 'Response' -ErrorAction Ignore
+      if ( $response ) {
+        $errorDetails = $_.ErrorDetails
+      }
+      # Not an exception making the request or the failed request didn't have a response body.
+      if ($null -eq $errorDetails) {
+        Write-Error -ErrorRecord $_
+      }
+      else {
+        Write-Error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
+      }
+    }
     
     #Run Expand-Archive in versions that support it
     if ($PSVersionTable.PSVersion.Major -gt 4) {
