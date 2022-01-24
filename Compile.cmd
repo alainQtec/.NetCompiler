@@ -28,7 +28,7 @@ $script:IsWinEnv = !$IsLinuxEnv -and !$IsMacOSEnv
 #         $oeap = $ErrorActionPreference
 #         $ErrorActionPreference = 'SilentlyContinue'
 #         try {
-#             if ($([System.Environment]::OSVersion.Platform) -eq 'Win32NT') {
+#             if ($IsWinEnv) {
 #                 $Path = Resolve-Path -Path $Path
 #             }
 #             else {
