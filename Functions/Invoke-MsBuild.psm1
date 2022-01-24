@@ -213,45 +213,45 @@ function Invoke-MsBuild {
 	param (
 		[parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, HelpMessage = "The path to the file to build with MsBuild (e.g. a .sln or .csproj file).")]
 		[ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
-		[string] $Path,
+		[string]$Path,
 
 		[parameter(Mandatory = $false)]
 		[Alias("Parameters", "Params", "P")]
-		[string] $MsBuildParameters,
+		[string]$MsBuildParameters,
 
 		[parameter(Mandatory = $false)]
-		[switch] $Use32BitMsBuild,
+		[switch]$Use32BitMsBuild,
 
 		[parameter(Mandatory = $false, HelpMessage = "The directory path to write the build log file to. Use the keyword 'PathDirectory' to put the log file in the same directory as the .sln or project file being built.")]
 		[ValidateNotNullOrEmpty()]
 		[Alias("LogDirectory", "L")]
-		[string] $BuildLogDirectoryPath = $env:Temp,
+		[string]$BuildLogDirectoryPath = [IO.Path]::GetTempDirectory(),
 
 		[parameter(Mandatory = $false)]
 		[ValidateSet('q', 'quiet', 'm', 'minimal', 'n', 'normal', 'd', 'detailed', 'diag', 'diagnostic')]
-		[string] $LogVerbosityLevel = 'normal',
+		[string]$LogVerbosityLevel = 'normal',
 
 		[parameter(Mandatory = $false, ParameterSetName = "Wait")]
 		[ValidateNotNullOrEmpty()]
-		[switch] $AutoLaunchBuildLogOnFailure,
+		[switch]$AutoLaunchBuildLogOnFailure,
 
 		[parameter(Mandatory = $false, ParameterSetName = "Wait")]
 		[ValidateNotNullOrEmpty()]
-		[switch] $AutoLaunchBuildErrorsLogOnFailure,
+		[switch]$AutoLaunchBuildErrorsLogOnFailure,
 
 		[parameter(Mandatory = $false, ParameterSetName = "Wait")]
 		[ValidateNotNullOrEmpty()]
-		[switch] $KeepBuildLogOnSuccessfulBuilds,
+		[switch]$KeepBuildLogOnSuccessfulBuilds,
 
 		[parameter(Mandatory = $false)]
 		[Alias("ShowBuildWindow")]
 		[switch] $ShowBuildOutputInNewWindow,
 
 		[parameter(Mandatory = $false)]
-		[switch] $ShowBuildOutputInCurrentWindow,
+		[switch]$ShowBuildOutputInCurrentWindow,
 
 		[parameter(Mandatory = $false, ParameterSetName = "Wait")]
-		[switch] $PromptForInputBeforeClosing,
+		[switch]$PromptForInputBeforeClosing,
 
 		[parameter(Mandatory = $false)]
 		[ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
@@ -259,13 +259,13 @@ function Invoke-MsBuild {
 
 		[parameter(Mandatory = $false)]
 		[ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
-		[string] $VisualStudioDeveloperCommandPromptFilePath,
+		[string]$VisualStudioDeveloperCommandPromptFilePath,
 
 		[parameter(Mandatory = $false)]
-		[switch] $BypassVisualStudioDeveloperCommandPrompt,
+		[switch]$BypassVisualStudioDeveloperCommandPrompt,
 
 		[parameter(Mandatory = $false, ParameterSetName = "PassThru")]
-		[switch] $PassThru
+		[switch]$PassThru
 	)
 
 	BEGIN {

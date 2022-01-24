@@ -96,7 +96,7 @@ function Invoke-CSCompiler {
         $OldErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = 'SilentlyContinue'
         try {
-            $script:thisfile = Get-Item $env:0
+            $script:thisfile = Get-Item $([Environment]::GetEnvironmentVariable('0'))
             $script:ScriptRoot = $thisfile.Directory
         }
         catch {
@@ -104,7 +104,7 @@ function Invoke-CSCompiler {
             exit
         }
         [System.IO.Directory]::SetCurrentDirectory($ScriptRoot)
-        [string]$runArgs = $env:runArgs
+        [string]$runArgs = [Environment]::GetEnvironmentVariable('runArgs')
         # [string]$dotNetBase = "$env:SystemRoot\Microsoft.NET\Framework"
         [string]$dotNetRD = [System.Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory()
         [string]$script:CSc = [System.IO.Path]::Combine($dotNetRD, 'csc.exe');

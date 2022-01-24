@@ -122,3 +122,19 @@ function Get-OmniSharpRoslyn {
     [gc]::Collect()
   }
 }
+# Install other C# dependencies
+
+# Download package 'OmniSharp for Windows (.NET 4.6 / x64)' (41037 KB).................... Done!
+# Install package 'OmniSharp for Windows (.NET 4.6 / x64)'
+
+# Download package '.NET Core Debugger (Windows / x64)' (45302 KB).................... Done!
+# Install package '.NET Core Debugger (Windows / x64)'
+
+# Download package 'Razor Language Server (Windows / x64)' (62313 KB).................... Done!
+# Install package 'Razor Language Server (Windows / x64)'
+
+# Get The Sdk for Vscode
+# https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.101-windows-x64-installer?journey=vs-code
+
+# Verify installation, by runing the command
+# dotnet
