@@ -34,17 +34,12 @@ function Get-OmniSharpRoslyn {
   )
   
   begin {
-    
-  }
-  
-  process {        
+    $ErrorActionPreference = $ProgressPreference = 'SilentlyContinue'
     if ($usage) {
       Write-Host "usage:" $MyInvocation.MyCommand.Name "[-Hu] [-v version] [-l location]"
       exit
     }
-    
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    
     function get_latest_version() {
       # The output should be minimal:
       # EXAMPLE Downloading package 'OmniSharp for Windows (.NET 4.6 / x64)' 	
@@ -52,7 +47,9 @@ function Get-OmniSharpRoslyn {
       $tmp = Invoke-RestMethod -Uri "https://api.github.com/repos/OmniSharp/omnisharp-roslyn/releases/latest"
       return $tmp.tag_name
     }
-    
+  }
+  
+  process {
     if ([string]::IsNullOrEmpty($version)) {
       $version = get_latest_version
     }
@@ -78,11 +75,8 @@ function Get-OmniSharpRoslyn {
       Remove-Item $location -Force -Recurse
     }
     New-Item -ItemType Directory -Force -Path $location | Out-Null
-    
-    #Run as SilentlyContinue to avoid progress bar that can't be seen
-    $ProgressPreference = 'SilentlyContinue'
     try {
-      Invoke-WebRequest -Uri $uri -OutFile $out
+      Invoke-WebRequest -Uri $url -OutFile $out
     }
     catch {
       $errorDetails = $null
@@ -95,10 +89,9 @@ function Get-OmniSharpRoslyn {
         Write-Error -ErrorRecord $_
       }
       else {
-        Write-Error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
+        Write-Error -Message ('Request to "{0}" failed: {1}' -f $url, $errorDetails)
       }
     }
-    
     #Run Expand-Archive in versions that support it
     if ($PSVersionTable.PSVersion.Major -gt 4) {
       Expand-Archive $out -DestinationPath $location -Force
@@ -107,21 +100,24 @@ function Get-OmniSharpRoslyn {
       Add-Type -AssemblyName System.IO.Compression.FileSystem
       [System.IO.Compression.ZipFile]::ExtractToDirectory( $out, $location )
     }
-    
+  }
+  
+  end {
+    [gc]::Collect()
     #Check for file to confirm download and unzip were successful
     if (Test-Path -Path "$($location)\OmniSharp.Roslyn.dll") {
-      Set-Content -Path "$($location)\OmniSharpInstall-version.txt" -Value "OmniSharp $($version)"
+      Set-Content -Path "$($location)$($version)"
       exit 0
     }
     else {
       exit 1
     }
   }
-  
-  end {
-    [gc]::Collect()
-  }
 }
+
+# Install Vscode extention. 
+# https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp
+
 # Install other C# dependencies
 
 # Download package 'OmniSharp for Windows (.NET 4.6 / x64)' (41037 KB).................... Done!
